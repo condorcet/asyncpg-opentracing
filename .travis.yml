@@ -1,0 +1,15 @@
+dist: xenial
+
+services: postgresql
+
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+
+install:
+    pip install tox-travis flake8
+script:
+    - tox
+    - flake8 asyncpg_opentracing/ tests/

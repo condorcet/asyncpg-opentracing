@@ -44,35 +44,6 @@ def wrap(coro):
     return wrapped
 
 
-def _wrap(coro):
-
-    @wraps(coro)
-    async def wrapped(self, query, *args, **kwargs):
-        _tags = {
-            tags.DATABASE_TYPE: 'SQL',
-            tags.DATABASE_STATEMENT: query,
-            tags.DATABASE_USER: self._params.user,
-            tags.DATABASE_INSTANCE: self._params.database,
-            'db.params': args,
-            tags.SPAN_KIND: tags.SPAN_KIND_RPC_CLIENT,
-        }
-        with global_tracer().start_active_span(
-                operation_name=operation_name(query),
-                tags=_tags
-        ) as scope:
-            try:
-                return await coro(self, query, *args, **kwargs)
-            except Exception as e:
-                scope.span.log_kv({
-                    logs.EVENT: 'error',
-                    logs.ERROR_KIND: type(e).__name__,
-                    logs.ERROR_OBJECT: e,
-                    logs.MESSAGE: str(e)
-                })
-                raise
-    return wrapped
-
-
 def wrap_executemany(coro):
 
     @wraps(coro)
